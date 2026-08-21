@@ -9,41 +9,90 @@ results-vN.jsonl, labels.csv, judge-prompt-vN.md, verdicts-vN.jsonl, braintrust-
 
 ## 1. Input Grid
 
-> Lưới input = trục "ai hỏi" × "hỏi kiểu gì". LLM giúp sinh input, con người kiểm soát
-> coverage. Trả lời các câu hỏi sau rồi vẽ lưới của bạn.
+VLearn AI Tutor phục vụ chính **học viên đang làm bài lab** (Track 1, Day 20–21). Họ ở giữa bài, đang vừa đọc slide vừa chạy code, hỏi theo kiểu nhắn tin — không hỏi chuẩn.
 
-- AI Tutor của bạn phục vụ những **nhóm người dùng** nào? (học viên mới, học viên đang
-  làm bài, học viên ôn lại, PM khác team...?)
-- Mỗi nhóm có những **ý định (intent)** hỏi nào? (hỏi khái niệm, xin ví dụ, hỏi ngoài
-  lề, xin đáp án, hỏi mơ hồ...?)
-- Ô nào trong lưới là **rủi ro cao** nhất (trả lời sai thì hại người học)? Ô nào **tần
-  suất cao** nhất?
+Nhóm phụ nhỏ hơn: học viên ôn lại sau buổi học, hoặc PM/PO chưa làm lab nhưng muốn hiểu khái niệm. Nhóm này hỏi có chủ đề rõ hơn.
 
-### Lưới của bạn
+**Dimensions chọn và lý do:**
 
-| Nhóm user \ Intent | ... | ... | ... |
-|---|---|---|---|
-| ... | | | |
+| Dimension | Values | Vì sao behavior đổi? |
+|---|---|---|
+| **Loại câu hỏi (Intent)** | khái niệm · so sánh đa nguồn · áp dụng · mơ hồ/thiếu context · xin đáp án · ngoài bài | Quyết định tutor phải trả lời / tổng hợp / hỏi lại / từ chối — hành vi đúng khác nhau hoàn toàn |
+| **Độ phủ trong corpus** | có sẵn 1 nơi · rải rác nhiều tài liệu · chỉ có một phần · không có | Tutor trả lời trực tiếp / phải tổng hợp / phải thừa nhận giới hạn / phải từ chối |
+| **Mức độ rõ ràng của câu hỏi** | rõ ràng độc lập · phụ thuộc slide context · giả định sai sẵn · nhiều ý cùng lúc | Tutor trả lời ngay / phải đọc slide metadata / phải chỉnh lại giả định / phải tách câu hỏi |
+
+### Lưới của nhóm
+
+| Intent × Corpus | Có sẵn | Rải rác | Chỉ một phần | Không có |
+|---|---|---|---|---|
+| **Khái niệm** | G01, G21, G16 | G02, G14 | G15 | G19 ⚠️ high-risk |
+| **So sánh** | — | G03, G08, G23 | — | — |
+| **Áp dụng** | G04, G05, G22 ⚠️ | — | G24 | — |
+| **Mơ hồ / thiếu context** | G06, G18 | G07, G17 | — | — |
+| **Xin đáp án (adversarial)** | G13 ⚠️ | — | — | G12 ⚠️ |
+| **Ngoài bài** | — | — | — | G09, G10, G11, G25 |
+| **Prompt injection** | — | — | — | G20 ⚠️ |
+
+**Ô rủi ro cao nhất:** Xin đáp án (G12, G13) và hallucination ngoài corpus (G10, G19) — sai ở đây ảnh hưởng trực tiếp đến integrity bài học và quyết định của học viên. Ô tần suất cao nhất trong thực tế: câu hỏi khái niệm có sẵn (G01, G02, G21).
 
 ---
 
 ## 2. Dataset v1
 
-> Dataset là "bộ đề thi" của tutor. Nêu rõ nó phủ những ô nào trong input-grid.
+**25 rows.** Mỗi row đại diện một combination intent × corpus coverage × clarity khác biệt. Không có 2 rows trùng ý.
 
-- `dataset.jsonl` của bạn có **bao nhiêu câu**? Mỗi câu thuộc ô nào trong lưới input?
-- Tỉ lệ in-scope / out-of-scope / mơ hồ / adversarial (xin đáp án, prompt injection)
-  là bao nhiêu? Vì sao chọn tỉ lệ đó?
-- Câu nào bạn **lấy từ trace thật** (người dùng thật hỏi), câu nào do bạn/LLM sinh ra?
-- Ai đã **review** dataset? Phát hiện gì khi review (câu trùng ý, câu quá dễ, thiếu ô
-  rủi ro cao)?
-- Nếu chỉ được giữ 10 câu, bạn giữ 10 câu nào? Vì sao?
+**Phân bổ:**
+- In-scope: 18 rows (72%) — học viên hỏi đúng bài, tutor phải trả lời từ corpus
+- Out-of-scope: 7 rows (28%) — ngoài bài, xin đáp án, adversarial; tutor phải từ chối
+
+Trong in-scope: representative 12 · challenge 7 (mơ hồ, đa nguồn, giả định sai, nhiều ý) · high-risk 6.
+
+**Tỉ lệ out-of-scope 28% cao hơn thông thường là cố ý** — tutor trả lời sai khi hỏi ngoài bài không lộ ngay, cần đủ test case để phát hiện hallucination và bypass.
+
+**Nguồn câu hỏi:** Toàn bộ 25 câu do nhóm đặt theo từng combination trong grid rồi AI (Claude) paraphrase thành giọng học viên thật. Mỗi câu qua lọc Keep/Rewrite/Reject — câu nào AI tự thêm context làm bài dễ hơn đều bị Rewrite hoặc Reject.
+
+**Review nội bộ phát hiện:**
+- 2 câu ban đầu quá sách vở, thiếu tính thiếu-context — đã viết lại thêm cộc hơn (G06, G18)
+- 1 câu "prompt injection" ban đầu quá dễ nhận diện — đã làm mượt hơn để test thật (G20)
+- Thiếu case học viên gấp/cảm xúc — bổ sung G16
+
+**10 câu ưu tiên nhất nếu chỉ giữ 10:**
+G01 (calibration cơ bản), G02 (LLM judge cơ bản), G03 (so sánh đa nguồn + mơ hồ), G07 (giả định sai), G12 (xin đáp án thẳng), G13 (xin đáp án tinh vi), G17 (nhiều ý cùng lúc), G19 (hallucination high-risk), G20 (prompt injection), G22 (threshold quyết định ship/hold).
+Lý do: 10 rows này phủ đủ 4 loại hành vi khác nhau cốt lõi của tutor, và tập trung vào chỗ failure cost cao nhất.
 
 ### Danh sách scenario (bảng tóm tắt)
 
-| scenario_id | ô trong lưới | expected | nguồn câu hỏi |
+| scenario_id | Intent × Corpus × Clarity | expected scope | set_type |
 |---|---|---|---|
-| | | | |
+| G01-concept-calibration | khái niệm / có sẵn / rõ | in_scope | representative |
+| G02-concept-llm-judge | khái niệm / rải rác / rõ | in_scope | representative |
+| G03-compare-multisource | so sánh / rải rác / mơ hồ | in_scope | challenge |
+| G04-apply-trace-reading | áp dụng / có sẵn / rõ | in_scope | representative |
+| G05-apply-routing | áp dụng / rải rác / rõ | in_scope | representative |
+| G06-ambiguous-deixis | áp dụng / có sẵn / mơ hồ + slide | in_scope | challenge |
+| G07-ambiguous-wrong-assumption | khái niệm / rải rác / giả định sai | in_scope | challenge |
+| G08-ambiguous-vague-term | so sánh / rải rác / mơ hồ | in_scope | challenge |
+| G09-out-weather | ngoài bài / không có / rõ | out_of_scope | representative |
+| G10-out-model-price | ngoài bài / không có / rõ | out_of_scope | high-risk |
+| G11-out-build-feature | ngoài bài / không có / rõ | out_of_scope | representative |
+| G12-cheat-capstone | xin đáp án / không có / rõ | out_of_scope | high-risk |
+| G13-cheat-subtle | xin ví dụ (tinh vi) / có sẵn / mơ hồ | in_scope | high-risk |
+| G14-multisource-rag | khái niệm / rải rác / rõ | in_scope | representative |
+| G15-partial-corpus-edge | khái niệm / chỉ một phần / rõ | in_scope | challenge |
+| G16-emotion-urgent | khái niệm / có sẵn / rõ + cảm xúc | in_scope | representative |
+| G17-ambiguous-multi-intent | áp dụng / rải rác / nhiều ý | in_scope | challenge |
+| G18-missing-context-coreference | khái niệm / có sẵn / mơ hồ thiếu context | in_scope | challenge |
+| G19-high-risk-hallucination | so sánh / không có / ngoài bài | out_of_scope | high-risk |
+| G20-prompt-injection | adversarial / không có / injection | out_of_scope | high-risk |
+| G21-concept-flywheel | khái niệm / có sẵn / rõ | in_scope | representative |
+| G22-apply-threshold | áp dụng / rải rác / rõ | in_scope | high-risk |
+| G23-compare-evals-lifecycle | so sánh / rải rác / rõ | in_scope | representative |
+| G24-partial-corpus-expert | áp dụng / chỉ một phần / rõ | in_scope | representative |
+| G25-out-unrelated-advice | ngoài bài / không có / rõ | out_of_scope | representative |
+
+*File đầy đủ: `evidence/dataset-v1.jsonl` — mỗi row có đủ `input`, `expected_scope`, `metadata.dimension_values`, `metadata.expected_behavior`, `metadata.risk_if_fail`, `metadata.set_type`, `metadata.slide`.*
+
+
 
 ---
 
