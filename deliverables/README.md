@@ -32,11 +32,11 @@ từng vòng.
 
 ## Checklist trước khi nộp
 
-- [ ] `deliverables/REPORT.md` đủ 7 mục (1 Input Grid … 7 Verdict); mục nào cũng có phần **quyết định + vì sao**
-- [ ] `deliverables/evidence/` có đủ data thô của mọi bước: dataset, results, labels, judge prompts
+- [x] `deliverables/REPORT.md` đủ 7 mục (1 Input Grid … 7 Verdict); mục nào cũng có phần **quyết định + vì sao**
+- [x] `deliverables/evidence/` có đủ data thô của mọi bước: dataset, results, labels, judge prompts
       từng vòng, verdicts từng vòng, link Braintrust/LangSmith (trace mọi run)
-- [ ] Số liệu trong REPORT.md khớp với data trong deliverables/evidence/ (kiểm chứng được)
-- [ ] Verdict có đủ 5 phần report và một quyết định rõ ràng
+- [x] Số liệu trong REPORT.md khớp với data trong deliverables/evidence/ (kiểm chứng được)
+- [x] Verdict có đủ 5 phần report và một quyết định rõ ràng
 - [ ] `ai-support-log.md` là của chính người nộp
 
 ## Gợi ý

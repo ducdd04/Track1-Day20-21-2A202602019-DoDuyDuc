@@ -101,22 +101,20 @@ File đầy đủ: `evidence/dataset-v1.jsonl`. Mỗi row có đủ `input`, `ex
 > Rubric = định nghĩa "đủ tốt" mà cả team chấm giống nhau. Thu hẹp scope trước khi
 > viết tiêu chí.
 
-- Tutor trả lời một câu in-scope **"đủ tốt"** khi nào? Viết bằng 1–2 câu ai cũng hiểu.
-- Liệt kê các **tiêu chí chấm** (gợi ý: groundedness, citation đúng format, đúng scope,
-  chất lượng sư phạm, follow-up có giá trị...). Mỗi tiêu chí: pass/fail thế nào, ví dụ
-  pass, ví dụ fail.
-- Tiêu chí nào là **blocker** (fail là cả lượt fail)? Tiêu chí nào chỉ là "điểm cộng"?
-- Với câu out-of-scope, hành vi nào được coi là pass? (từ chối + gợi ý chủ đề liên quan?)
-- Bạn đã thử chấm chéo với ai chưa? Hai người chấm lệch nhau ở tiêu chí nào, sửa rubric
-  ra sao sau đó?
+- Tutor trả lời một câu in-scope **"đủ tốt"** khi nào? 
+  Tutor trả lời đủ tốt khi đáp án trực tiếp giải quyết được câu hỏi của học viên, mọi thông tin đều được hỗ trợ bởi tài liệu nguồn, trích dẫn chính xác, và có 3 câu hỏi gợi mở phù hợp để dẫn dắt học viên tiếp tục tư duy.
+- Với câu out-of-scope, hành vi nào được coi là pass? 
+  Tutor phải lịch sự từ chối trả lời do nằm ngoài phạm vi khóa học, không được tự ý sinh ra kiến thức ngoài luồng, nhưng có thể gợi ý học viên đặt câu hỏi về các chủ đề liên quan trong khóa học.
+- Bạn đã thử chấm chéo với ai chưa? Hai người chấm lệch nhau ở tiêu chí nào, sửa rubric ra sao sau đó?
+  Ba thành viên đã chấm độc lập. Lệch nhiều nhất ở tiêu chí "Làm rõ câu hỏi" đối với các câu hỏi thiếu ngữ cảnh (ví dụ: G06, G18). Một người cho rằng Tutor nên tự suy diễn (Pass), người khác cho rằng Tutor phải hỏi lại (Fail). Sau đó nhóm thống nhất sửa Rubric: Tuyệt đối không cho phép Tutor tự đưa ra giả định, bắt buộc phải hỏi lại học viên để làm rõ.
 
 ### Rubric của bạn
 
-| Tiêu chí | Pass khi | Fail khi | Blocker |
-|---|---|---|---|
-| Mức độ bám sát nguồn dữ liệu | Sinh viên trích dẫn đúng nguồn gốc dữ liệu trong tài liệu. | Sinh viên tự suy diễn hoặc bịa thông tin sai lệch so với tài liệu gốc. | Có |
-| Kiểm soát phạm vi câu hỏi | Từ chối trả lời các yêu cầu nằm ngoài phạm vi môn học. | Trả lời sai phạm vi hoặc thực hiện các hành vi không được phép như viết mã hộ. | Có |
-| Làm rõ câu hỏi | Đặt câu hỏi làm rõ khi học viên đưa ra yêu cầu không đầy đủ ngữ cảnh. | Tự đưa ra giả định để giải thích khi câu hỏi không có đủ thông tin. | Không nhưng trừ điểm |
+| Tiêu chí | Định nghĩa / Pass khi | Fail khi | Ví dụ thật (Pass / Fail / Borderline) | Blocker |
+|---|---|---|---|---|
+| Mức độ bám sát nguồn dữ liệu | Trích dẫn đúng nguồn gốc dữ liệu, không bịa thông tin. | Tự suy diễn hoặc bịa thông tin sai lệch. | **Pass**: Trả lời khái niệm LLM Judge đúng như trong tài liệu. <br>**Fail**: Trích dẫn một khái niệm không hề có trong slide. <br>**Borderline**: Bám nguồn nhưng diễn đạt lại bằng từ đồng nghĩa (vẫn Pass). | Có |
+| Kiểm soát phạm vi câu hỏi | Nhận diện đúng câu ngoài phạm vi và từ chối. | Cố gắng trả lời câu hỏi ngoài bài, hoặc từ chối nhầm câu trong bài. | **Pass**: G09 (Hỏi thời tiết) -> Từ chối. <br>**Fail**: G12 (Xin đáp án thẳng) -> Cung cấp code giải bài. <br>**Borderline**: Trả lời câu out-of-scope nhưng nhắc nhở "Đây là kiến thức ngoài" (Fail - vi phạm nguyên tắc chỉ dùng corpus). | Có |
+| Làm rõ câu hỏi | Đặt câu hỏi làm rõ khi học viên đưa ra yêu cầu thiếu ngữ cảnh. | Tự đưa ra giả định để giải thích khi câu hỏi không có đủ thông tin. | **Pass**: G18 -> Hỏi lại học viên "Phần đó" là phần nào. <br>**Fail**: Tự suy đoán "Phần đó" là phần 1 và giải thích. <br>**Borderline**: Đặt câu hỏi làm rõ nhưng hơi cứng nhắc (vẫn Pass). | Không |
 
 ---
 
@@ -210,17 +208,28 @@ Mô hình giám khảo được sử dụng là nemotron-30b. Sau hai vòng tinh
 
 #### 5. Verdict + bước tiếp theo
 
-Quyết định tạm hoãn triển khai do hệ thống chưa đáp ứng tiêu chuẩn chất lượng. Tỉ lệ trích dẫn sai sót cao và hệ thống vẫn gặp khó khăn trong việc xử lý các truy vấn thiếu ngữ cảnh.
+#### 5. Verdict + bước tiếp theo
 
-Hướng khắc phục tiếp theo bao gồm việc điều chỉnh hệ thống truy xuất để giữ nguyên vẹn nội dung trích dẫn, tối ưu hóa lời nhắc hệ thống nhằm giảm thiểu hiện tượng ảo giác và xem xét thay thế mô hình giám khảo nemotron-30b bằng một mô hình có khả năng suy luận tốt hơn để nâng cao độ đồng thuận.
+Quyết định tạm hoãn triển khai (**Hold**) do hệ thống chưa đáp ứng tiêu chuẩn chất lượng. Tỉ lệ trích dẫn nguyên văn sai sót cao (chỉ đạt 81.25%) và hệ thống vẫn gặp khó khăn trong việc xử lý các truy vấn thiếu ngữ cảnh.
+
+Hướng khắc phục tiếp theo bao gồm việc điều chỉnh hệ thống truy xuất (retrieval) để giữ nguyên vẹn nội dung trích dẫn, tối ưu hóa lời nhắc hệ thống nhằm giảm thiểu hiện tượng ảo giác và xem xét thay thế mô hình giám khảo nemotron-30b bằng một mô hình có khả năng suy luận tốt hơn để nâng cao độ đồng thuận.
+
+**Metric chứng minh sẵn sàng:** Hệ thống sẽ chỉ được coi là sẵn sàng để ra mắt (Ship) ở vòng đánh giá tiếp theo khi:
+1. Làn code kiểm tra "Trích dẫn nguyên văn" đạt lại ngưỡng **> 95%**.
+2. Làn LLM Judge chấm "Bám sát nguồn" (sau khi thay model Judge) đạt **> 85%**.
+3. Độ đồng thuận giữa người và máy (Agreement) đạt tối thiểu **80%**.
 
 ### Câu hỏi tự soi (Phần cá nhân)
 > Phần tự soi này dành cho từng cá nhân tự điền, không phải quyết định chung của nhóm.
 
-- Tin cậy nhất ở đâu, đáng lo nhất ở đâu? [PLACEHOLDER]
-- Nếu chỉ được sửa một thứ trước khi cho học viên thật sử dụng, đó là gì? [PLACEHOLDER]
-- Vòng lặp đánh giá này sẽ chạy lại khi nào và ai là người đánh giá kết quả? [PLACEHOLDER]
-- Điều gì trong bài thực hành này bạn sẽ mang về áp dụng vào sản phẩm thực tế của mình? [PLACEHOLDER]
+- Tin cậy nhất ở đâu, đáng lo nhất ở đâu? 
+  **Tin cậy nhất** ở khâu kiểm tra tự động bằng làn code check (bắt chuẩn xác 100% lỗi định dạng JSON và trích dẫn sai). **Đáng lo nhất** ở LLM Judge vì mô hình này có xu hướng quá an toàn và khắt khe, dẫn đến false negative cao, khiến điểm bám sát nguồn tài liệu không phản ánh đúng thực tế.
+- Nếu chỉ được sửa một thứ trước khi cho học viên thật sử dụng, đó là gì? 
+  Cải thiện cơ chế BM25 retrieval và tool-calling của AI Tutor để giữ nguyên vẹn nội dung trích dẫn (nhất là việc không tự ý dịch thuật ngữ tiếng Anh sang tiếng Việt), từ đó giúp Tutor vượt qua được làn code check một cách trọn vẹn trước khi đến tay học viên.
+- Vòng lặp đánh giá này sẽ chạy lại khi nào và ai là người đánh giá kết quả? 
+  Sẽ chạy lại ngay sau khi thay đổi logic tìm kiếm (retrieval) hoặc đổi mô hình Tutor sang phiên bản mới. Người đánh giá kết quả vẫn là Product Manager (người chốt threshold) kết hợp với kỹ sư (người duyệt tay những case borderline mà Judge từ chối).
+- Điều gì trong bài thực hành này bạn sẽ mang về áp dụng vào sản phẩm thực tế của mình? 
+  Đó là tư duy thiết kế ma trận Input Grid và nguyên tắc code check chạy trước, LLM judge chạy sau. Việc dùng rule-based để bọc lót giúp tiết kiệm chi phí API và giảm thiểu rủi ro so với việc giao toàn bộ quyền đánh giá cho LLM.
 
 ---
 
@@ -228,6 +237,9 @@ Hướng khắc phục tiếp theo bao gồm việc điều chỉnh hệ thống
 
 > Phần này mỗi thành viên tự điền để ghi lại quá trình hỗ trợ của trí tuệ nhân tạo đối với cá nhân mình.
 
-- AI đã giúp tôi ở đâu? [PLACEHOLDER]
-- AI sai, hời hợt hoặc làm mất độ bao phủ ở đâu? [PLACEHOLDER]
-- Tôi đã tự sửa hoặc quyết định lại điều gì? [PLACEHOLDER]
+- AI đã giúp tôi ở đâu? 
+  AI đã hỗ trợ paraphrase các kịch bản test từ lưới thiết kế thành các câu hỏi tự nhiên mang văn phong học viên. Ngoài ra, AI giúp soạn nháp văn bản báo cáo (Report) dựa trên các gạch đầu dòng nhóm đã chốt, hỗ trợ viết script tự động xử lý file dữ liệu, và tóm tắt pattern từ các case bị lệch của Judge để phân tích nhanh hơn.
+- AI sai, hời hợt hoặc làm mất độ bao phủ ở đâu? 
+  Khi paraphrase, AI thỉnh thoảng tự ý bổ sung thêm ngữ cảnh làm cho câu hỏi trở nên quá chi tiết, làm mất đi tính "mơ hồ/thiếu context" mà nhóm chủ đích kiểm thử. Ngoài ra, khi gọi API Gemini, mô hình thỉnh thoảng báo lỗi 429 hoặc treo do vượt hạn ngạch.
+- Tôi đã tự sửa hoặc quyết định lại điều gì? 
+  Tôi đã loại bỏ các câu hỏi quá "sạch sẽ" do AI sinh ra và tự tay chỉnh sửa lại để câu mang tính cộc lốc, đời thực hơn. Tôi cũng hoàn toàn tự tay gán nhãn baseline (nhãn vàng) ở Phase 2 cùng nhóm, không sử dụng AI để can thiệp vào chuẩn vàng, và tự quyết định ngưỡng threshold trước khi cho chạy test thật.

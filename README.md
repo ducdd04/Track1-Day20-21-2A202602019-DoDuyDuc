@@ -1,3 +1,15 @@
+# BÀI NỘP CAPSTONE: AI EVALUATION (DAY 21)
+
+- **Học viên:** Để trống
+- **Nhóm:** TeamHoang
+  - Đỗ Duy Đức: 2A202602019
+  - Kiều Hồng Phong: 2A202601020
+  - Nguyễn Đức Đạt: 2A202601728
+- **Đóng góp cá nhân:** [PLACEHOLDER: Điền ngắn gọn phần việc bạn phụ trách trong team]
+- **Verdict tóm tắt:** **HOLD** (Tạm hoãn triển khai do tỉ lệ trích dẫn sai sót cao 81.25% và hệ thống chưa xử lý tốt các truy vấn thiếu ngữ cảnh).
+
+---
+
 # K3 Track 1 · Day 20–21 — AI Evaluation (eval-kit)
 
 Repo làm bài capstone **AI Evaluation** của case **VLearn AI Tutor** — trợ giảng trả lời
