@@ -81,6 +81,7 @@ PROVIDERS = {
     "anthropic":  ("ANTHROPIC_API_KEY", "https://api.anthropic.com/v1"),
     "gemini":     ("GEMINI_API_KEY", "https://generativelanguage.googleapis.com/v1beta/openai"),
     "openrouter": ("OPENROUTER_API_KEY", "https://openrouter.ai/api/v1"),
+    "nvidia":     ("NVIDIA_API_KEY", "https://integrate.api.nvidia.com/v1"),
 }
 
 BASE_URL = os.environ.get("EVAL_BASE_URL")  # None = gọi thẳng provider
@@ -98,7 +99,8 @@ def resolve_provider(model):
             + ", ".join(PROVIDERS)
             + " — hoặc đặt EVAL_BASE_URL trỏ về gateway OpenAI-compatible của bạn.")
     env_name, base = PROVIDERS[family]
-    return base, os.environ.get(env_name), model[len(family) + 1:]
+    model_id = model[len(family) + 1:] if "/" in model else model
+    return base, os.environ.get(env_name), model_id
 
 def get_api_key(model=MODEL):
     """Key theo family của model (openai/gpt-... -> OPENAI_API_KEY...)."""

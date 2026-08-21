@@ -77,6 +77,7 @@ print("== Tầng 5b: resolve_provider ==")
 import importlib
 saved_base = tutor.BASE_URL
 saved_ds_key = os.environ.get("DEEPSEEK_API_KEY")
+saved_nv_key = os.environ.get("NVIDIA_API_KEY")
 tutor.BASE_URL = None
 os.environ["DEEPSEEK_API_KEY"] = "test-key-ds"
 b, k, m = tutor.resolve_provider("deepseek/deepseek-v4-flash")
@@ -88,6 +89,10 @@ b, k, m = tutor.resolve_provider("gemini/gemini-3.1-flash-lite")
 check("gemini direct", "generativelanguage.googleapis.com" in b and m == "gemini-3.1-flash-lite")
 b, k, m = tutor.resolve_provider("openrouter/anthropic/claude-x")
 check("openrouter giữ nguyên id 2 đoạn", m == "anthropic/claude-x" and "openrouter.ai" in b)
+os.environ["NVIDIA_API_KEY"] = "test-key-nv"
+b, k, m = tutor.resolve_provider("nvidia/meta/llama-3.3-70b-instruct")
+check("nvidia direct: base + strip prefix",
+      b == "https://integrate.api.nvidia.com/v1" and m == "meta/llama-3.3-70b-instruct" and k == "test-key-nv")
 tutor.BASE_URL = "https://gw.example/v1"
 os.environ["EVAL_API_KEY"] = "gw-key"
 b, k, m = tutor.resolve_provider("deepseek/deepseek-v4-flash")
@@ -104,6 +109,12 @@ tutor.BASE_URL = saved_base
 os.environ.pop("EVAL_API_KEY", None)
 if saved_ds_key is not None:
     os.environ["DEEPSEEK_API_KEY"] = saved_ds_key
+else:
+    os.environ.pop("DEEPSEEK_API_KEY", None)
+if saved_nv_key is not None:
+    os.environ["NVIDIA_API_KEY"] = saved_nv_key
+else:
+    os.environ.pop("NVIDIA_API_KEY", None)
 
 print("== Tầng 6: vòng tool-calling (chat giả) ==")
 def fake_chat_factory(responses):

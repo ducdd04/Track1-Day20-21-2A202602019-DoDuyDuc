@@ -126,6 +126,7 @@ Model viết dạng `provider/model` — repo gọi **thẳng API chuẩn của 
 | `gemini/gemini-3.1-flash-lite`, ... | `GEMINI_API_KEY` |
 | `anthropic/claude-...` | `ANTHROPIC_API_KEY` |
 | `openrouter/<vendor>/<model>` | `OPENROUTER_API_KEY` |
+| `nvidia/<vendor>/<model>` (vd: `nvidia/meta/llama-3.3-70b-instruct`) | `NVIDIA_API_KEY` |
 
 | Biến | Mặc định | Ý nghĩa |
 |---|---|---|
