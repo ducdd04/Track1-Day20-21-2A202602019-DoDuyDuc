@@ -1,11 +1,11 @@
 # BÀI NỘP CAPSTONE: AI EVALUATION (DAY 21)
 
-- **Học viên:** Để trống
+- **Học viên:** Đỗ Duy Đức (2A202602019)
 - **Nhóm:** TeamHoang
   - Đỗ Duy Đức: 2A202602019
   - Kiều Hồng Phong: 2A202601020
   - Nguyễn Đức Đạt: 2A202601728
-- **Đóng góp cá nhân:** [PLACEHOLDER: Điền ngắn gọn phần việc bạn phụ trách trong team]
+- **Đóng góp cá nhân:** Chịu trách nhiệm chính thiết kế ma trận Input Grid và phân loại kịch bản ở Phase 1; trực tiếp gán nhãn độc lập 32 test cases (labels-duc.csv) và tham gia đồng thuận nhãn vàng; viết code bổ sung hàm kiểm tra check_followup_count ở làn Code-based; phân tích dữ liệu theo slice để viết báo cáo Scorecard.
 - **Verdict tóm tắt:** **HOLD** (Tạm hoãn triển khai do tỉ lệ trích dẫn sai sót cao 81.25% và hệ thống chưa xử lý tốt các truy vấn thiếu ngữ cảnh).
 
 ---

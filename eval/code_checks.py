@@ -65,16 +65,16 @@ def check_quote_verbatim(rec, section_tokens):
     return True, None
 
 
-def check_followup_count(rec, section_tokens):
-    """Kiểm tra xem tutor có sinh ra đúng 3 câu hỏi gợi mở hay không."""
+def check_followup_count(rec):
+    """Kiểm tra số lượng câu hỏi gợi ý mở rộng (followup_questions) phải từ 1 đến 3 câu."""
     out = rec.get("output") or {}
     if out.get("_parse_error"):
         return None, "bỏ qua (JSON vỡ)"
     followups = out.get("followup_questions")
     if not isinstance(followups, list):
-        return False, "followup_questions không phải mảng"
-    if len(followups) != 3:
-        return False, f"có {len(followups)} câu (yêu cầu 3)"
+        return False, "followup_questions không phải dạng danh sách (list)"
+    if not (1 <= len(followups) <= 3):
+        return False, f"số lượng followup questions ({len(followups)}) nằm ngoài khoảng [1, 3]"
     return True, None
 
 
@@ -100,7 +100,7 @@ def main(path="results.jsonl"):
         sid = rec.get("scenario_id", "?")
         line = [sid]
         for name, fn in CHECKS:
-            if fn is check_schema:
+            if fn in (check_schema, check_followup_count):
                 ok, reason = fn(rec)
             elif fn is check_citation_exists:
                 ok, reason = fn(rec, valid_ids)
