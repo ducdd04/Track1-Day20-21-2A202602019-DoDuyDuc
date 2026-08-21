@@ -1,0 +1,11 @@
+[project]
+name = "track1-day20-21-teamhoang"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "braintrust>=0.34.0",
+    "langsmith>=0.11.1",
+    "requests>=2.34.2",
+]
