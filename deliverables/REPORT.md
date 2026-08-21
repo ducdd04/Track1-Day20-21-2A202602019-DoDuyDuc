@@ -112,9 +112,11 @@ File đầy đủ: `evidence/dataset-v1.jsonl`. Mỗi row có đủ `input`, `ex
 
 ### Rubric của bạn
 
-| Tiêu chí | Pass khi | Fail khi | Blocker? |
+| Tiêu chí | Pass khi | Fail khi | Blocker |
 |---|---|---|---|
-| | | | |
+| Mức độ bám sát nguồn dữ liệu | Sinh viên trích dẫn đúng nguồn gốc dữ liệu trong tài liệu. | Sinh viên tự suy diễn hoặc bịa thông tin sai lệch so với tài liệu gốc. | Có |
+| Kiểm soát phạm vi câu hỏi | Từ chối trả lời các yêu cầu nằm ngoài phạm vi môn học. | Trả lời sai phạm vi hoặc thực hiện các hành vi không được phép như viết mã hộ. | Có |
+| Làm rõ câu hỏi | Đặt câu hỏi làm rõ khi học viên đưa ra yêu cầu không đầy đủ ngữ cảnh. | Tự đưa ra giả định để giải thích khi câu hỏi không có đủ thông tin. | Không nhưng trừ điểm |
 
 ---
 
@@ -123,19 +125,13 @@ File đầy đủ: `evidence/dataset-v1.jsonl`. Mỗi row có đủ `input`, `ex
 > Cái gì kiểm bằng code, cái gì cần LLM judge, cái gì phải đến tay expert. Không phải
 > tiêu chí nào cũng cần LLM.
 
-- Với từng tiêu chí trong rubric (mục 3 ở trên): kiểm tra bằng **code** (deterministic), **LLM
-  judge**, hay **con người**? Vì sao?
-- Tiêu chí nào bạn ban đầu định cho LLM judge chấm nhưng hoá ra code kiểm được rẻ hơn
-  (ví dụ: output có parse được JSON không, sources có đủ doc_id hợp lệ không)?
-- Tiêu chí nào LLM judge **không tin được** và phải giữ cho con người?
-- Judge prompt của bạn (`eval/judge_prompt.md`) chấm tiêu chí nào? Nhiệt độ, model judge là
-  gì, vì sao chọn khác model của tutor?
-
 ### Bảng routing
 
 | Tiêu chí | Code | LLM judge | Con người | Lý do |
 |---|---|---|---|---|
-| | | | | |
+| Kiểm tra định dạng | Có | | | Sử dụng mã lập trình để kiểm tra định dạng và nguồn trích dẫn mang lại độ chính xác tuyệt đối với chi phí thấp nhất. |
+| Mức độ bám sát nguồn | | Có | | Việc đánh giá mức độ bám sát nguồn dữ liệu cần khả năng xử lý ngôn ngữ tự nhiên dựa trên các quy tắc được định nghĩa trước. |
+| Yếu tố cảm xúc | | | Có | Các câu hỏi có yếu tố tâm lý hoặc thiếu ngữ cảnh rõ ràng thường khiến mô hình ngôn ngữ đánh giá sai do tính cứng nhắc. |
 
 ---
 
@@ -144,19 +140,21 @@ File đầy đủ: `evidence/dataset-v1.jsonl`. Mỗi row có đủ `input`, `ex
 > Judge chỉ đáng tin khi đã calibrate với chuẩn vàng của con người. Đây là minh chứng
 > cho việc đó.
 
-- Bạn đã **gán nhãn tay** bao nhiêu row? (labels.csv, export từ report.html)
-- Chạy `python3 eval/judge.py`: **agreement** giữa judge và nhãn người là bao nhiêu %? Dán
-  confusion matrix vào đây.
-- Judge **sai ở đâu**? (chặt quá / lỏng quá / lệch ở nhóm câu nào — in-scope hay
-  out-of-scope?)
-- Bạn đã sửa `eval/judge_prompt.md` thế nào sau vòng calibrate đầu? Agreement sau sửa?
-- Kết luận: judge của bạn **đủ tin để chấm tự động tiêu chí nào**, và tiêu chí nào vẫn
-  phải giữ cho người?
+Nhóm đã tiến hành dán nhãn thủ công cho 32 mẫu dữ liệu. Độ đồng thuận ban đầu giữa ba thành viên đạt mức 56 phần trăm.
 
-### Confusion matrix (dán output judge.py)
+Trong lần chạy đầu tiên với lời nhắc gốc, mức độ đồng thuận giữa mô hình và con người chỉ đạt 50 phần trăm. Mô hình giám khảo đánh giá quá khắt khe, dẫn đến tình trạng từ chối sai nhiều câu trả lời hợp lệ.
 
-```
-(dán ở đây)
+Sau khi điều chỉnh lời nhắc và bổ sung các ví dụ đạt yêu cầu, mức độ đồng thuận tăng lên 62 phần trăm.
+
+Mô hình nemotron-30b vẫn có xu hướng đánh giá an toàn quá mức, dẫn đến 10 trường hợp bị từ chối sai. Do đó, nhóm quyết định chỉ sử dụng mô hình này như một công cụ hỗ trợ phân loại ban đầu. Quyết định đối với các trường hợp phức tạp sẽ do chuyên gia thực hiện.
+
+### Confusion matrix
+
+```text
+           |      pass      fail uncertain       
+      pass |        10         1         1       
+      fail |        10        10         0       
+ uncertain |         0         0         0       
 ```
 
 ---
@@ -165,67 +163,71 @@ File đầy đủ: `evidence/dataset-v1.jsonl`. Mỗi row có đủ `input`, `ex
 
 > Tổng hợp điểm theo rubric trên dataset v1, rồi ra quyết định gate như một PM thật.
 
-- Kết quả chạy `eval/run_eval.py` + `eval/judge.py` trên dataset v1: **pass rate** theo từng tiêu
-  chí là bao nhiêu? (kèm link/chỉ đường tới results.jsonl, verdicts.jsonl, report.html)
-- Chi phí 1 vòng eval là bao nhiêu ($, token)? Latency trung bình 1 câu?
-- **Gate**: ngưỡng nào thì ship? Ví dụ: groundedness pass ≥ 90%, không có fail nào ở
-  nhóm blocker... — định nghĩa ngưỡng của bạn và giải thích vì sao.
-- Kết quả hiện tại: **SHIP hay CHƯA SHIP**? Căn cứ vào gate ở trên.
-- Nếu chưa ship: 3 lỗi lớn nhất cần fix ở tutor (prompt, retrieval, corpus)?
+Quá trình kiểm thử cục bộ không phát sinh chi phí giao tiếp qua giao diện lập trình ứng dụng. Độ trễ trung bình cho mỗi truy vấn dao động từ 2 đến 3 giây.
+
+Ngưỡng phê duyệt được xác định như sau. Kiểm tra tính hợp lệ của cấu trúc dữ liệu yêu cầu đạt 100 phần trăm. Kiểm tra tính tồn tại của nguồn trích dẫn yêu cầu đạt 100 phần trăm. Độ chính xác của đoạn trích dẫn nguyên văn yêu cầu đạt tối thiểu 95 phần trăm. Mức độ bám sát nguồn tài liệu yêu cầu đạt tối thiểu 80 phần trăm.
 
 ### Scorecard
 
 | Tiêu chí | Pass | Fail | Uncertain | Pass rate |
 |---|---|---|---|---|
-| | | | | |
+| Cấu trúc dữ liệu | 32 | 0 | 0 | 100 phần trăm |
+| Nguồn trích dẫn | 32 | 0 | 0 | 100 phần trăm |
+| Trích dẫn nguyên văn | 26 | 6 | 0 | 81.25 phần trăm |
+| Bám sát nguồn tài liệu | 12 | 20 | 0 | 37.5 phần trăm |
 
 ### Quyết định gate
 
-**SHIP / CHƯA SHIP** — vì: ...
+Chưa triển khai vì hai nguyên nhân chính. Tỉ lệ trích dẫn nguyên văn chỉ đạt 81.25 phần trăm, cho thấy hệ thống truy xuất và tạo sinh đang gặp lỗi trong việc trích xuất văn bản. Điểm bám sát nguồn tài liệu do mô hình giám khảo chấm ở mức rất thấp, ngay cả khi đối chiếu với nhãn do con người gán thì kết quả vẫn chỉ đạt 62 phần trăm. Hệ thống chưa đạt độ ổn định cần thiết.
+
+Các lỗi cần ưu tiên khắc phục bao gồm lỗi truy xuất văn bản khiến câu trích dẫn bị sai lệch, hiện tượng ảo giác của mô hình gia sư khi thiếu ngữ cảnh và tính khắt khe quá mức của mô hình giám khảo nemotron-30b.
 
 ---
 
 ## 7. Verdict + Report cuối
 
 > Kết luận cuối cùng của bạn với tư cách PM chịu trách nhiệm chất lượng tutor.
-> Verdict đi kèm report 1 trang đủ 5 phần — viết bằng ngôn ngữ PM, không dán log thô.
+> Verdict đi kèm report 1 trang đủ 5 phần.
 
 ### Report
 
 #### 1. Dataset đã đánh giá
-
-(tập nào, bao nhiêu traces, coverage chính là gì, blind spot nào còn lại)
+Tập dữ liệu thử nghiệm bao gồm 32 mẫu. Tập dữ liệu này bao phủ 6 nhóm ý định chính của người học với 4 mức độ phân bổ tài liệu khác nhau. Hệ thống chưa được đánh giá toàn diện với các kỹ thuật tiêm nhiễm lời nhắc phức tạp hoặc yêu cầu dịch thuật chéo ngôn ngữ.
 
 #### 2. Quá trình đồng thuận của con người
-
-- Agreement vòng độc lập (nhãn tổng): ___% — kèm thống kê từ note: tiêu chí nào gây bất đồng nhiều nhất
-- Mâu thuẫn lớn nhất: (case/tiêu chí nào, hai phía nghĩ gì)
-- Nhóm xử lý bằng cách nào: (siết định nghĩa / đổi thang / bỏ tiêu chí...)
+Độ đồng thuận độc lập đạt 56 phần trăm. Bất đồng lớn nhất tập trung ở các câu hỏi thiếu ngữ cảnh, nơi một nhóm muốn mô hình đưa ra giả định để hỗ trợ người dùng, nhóm còn lại yêu cầu mô hình phải xác minh lại thông tin. Nhóm đã thống nhất quy tắc không cho phép mô hình tự suy diễn ngữ cảnh và cập nhật lại bộ nhãn chuẩn.
 
 #### 3. LLM judge
+Mô hình giám khảo được sử dụng là nemotron-30b. Sau hai vòng tinh chỉnh lời nhắc, độ đồng thuận với con người đạt 62 phần trăm. Mô hình này không thể hiệu chuẩn để đạt ngưỡng trên 85 phần trăm do xu hướng tránh rủi ro quá mức, dẫn đến tỉ lệ từ chối sai rất cao.
 
-- Model judge: ________________
-- Số vòng calibration: ___ — sau đó judge nhận đúng ___% output tốt và bắt đúng ___% output xấu
-- Judge nào không calibrate nổi, vì sao: ________________
+#### 4. Bảng quyết định routing
 
-#### 4. Bảng quyết định routing (kèm lý giải)
-
-| Tiêu chí | Ngưỡng pass | Giao cho | Vì sao (dựa trên số liệu) |
+| Tiêu chí | Ngưỡng pass | Giao cho | Vì sao |
 |---|---|---|---|
-| vd: groundedness | ≥90% | LLM judge + audit 10%/tuần | bắt đúng 91% output xấu sau 2 vòng near-miss |
-|  |  |  |  |
-|  |  |  |  |
+| Cấu trúc dữ liệu | 100 phần trăm | Kiểm tra tự động | Mã lập trình kiểm tra tính hợp lệ mang lại kết quả tuyệt đối với tốc độ cao. |
+| Trích dẫn nguyên văn | Lớn hơn 95 phần trăm | Kiểm tra tự động | Hệ thống tự động phát hiện được 6 lỗi trích xuất sai mà việc đánh giá thủ công dễ bỏ sót. |
+| Bám sát nguồn | Lớn hơn 80 phần trăm | Mô hình hỗ trợ | Mô hình hiện tại từ chối sai khá nhiều nên chỉ đóng vai trò phân loại sơ bộ trước khi con người thẩm định. |
 
 #### 5. Verdict + bước tiếp theo
 
-**Ship / Ship with conditions / Hold** — vì: ________________
+Quyết định tạm hoãn triển khai do hệ thống chưa đáp ứng tiêu chuẩn chất lượng. Tỉ lệ trích dẫn sai sót cao và hệ thống vẫn gặp khó khăn trong việc xử lý các truy vấn thiếu ngữ cảnh.
 
-- Nếu Ship: monitoring tuần đầu xem gì, sample bao nhiêu %, alert ở ngưỡng nào?
-- Nếu Hold: đòn bẩy tiếp theo (prompt → model → architecture) và metric chứng minh đã sẵn sàng?
+Hướng khắc phục tiếp theo bao gồm việc điều chỉnh hệ thống truy xuất để giữ nguyên vẹn nội dung trích dẫn, tối ưu hóa lời nhắc hệ thống nhằm giảm thiểu hiện tượng ảo giác và xem xét thay thế mô hình giám khảo nemotron-30b bằng một mô hình có khả năng suy luận tốt hơn để nâng cao độ đồng thuận.
 
-### Câu hỏi tự soi
+### Câu hỏi tự soi (Phần cá nhân)
+> Phần tự soi này dành cho từng cá nhân tự điền, không phải quyết định chung của nhóm.
 
-- Tin cậy nhất ở đâu, đáng lo nhất ở đâu? (dẫn scenario_id cụ thể)
-- Nếu chỉ được fix **một thứ** trước khi cho học viên thật dùng, đó là gì?
-- Eval loop này sẽ chạy lại **khi nào** (mỗi lần đổi prompt? mỗi tuần? khi corpus đổi?) và ai nhìn kết quả?
-- Điều gì trong bài này bạn sẽ **mang về áp dụng** vào sản phẩm thật của mình?
+- Tin cậy nhất ở đâu, đáng lo nhất ở đâu? [PLACEHOLDER]
+- Nếu chỉ được sửa một thứ trước khi cho học viên thật sử dụng, đó là gì? [PLACEHOLDER]
+- Vòng lặp đánh giá này sẽ chạy lại khi nào và ai là người đánh giá kết quả? [PLACEHOLDER]
+- Điều gì trong bài thực hành này bạn sẽ mang về áp dụng vào sản phẩm thực tế của mình? [PLACEHOLDER]
+
+---
+
+## 8. AI Support Log (Phần cá nhân)
+
+> Phần này mỗi thành viên tự điền để ghi lại quá trình hỗ trợ của trí tuệ nhân tạo đối với cá nhân mình.
+
+- AI đã giúp tôi ở đâu? [PLACEHOLDER]
+- AI sai, hời hợt hoặc làm mất độ bao phủ ở đâu? [PLACEHOLDER]
+- Tôi đã tự sửa hoặc quyết định lại điều gì? [PLACEHOLDER]

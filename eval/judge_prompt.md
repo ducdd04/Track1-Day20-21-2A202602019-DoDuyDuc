@@ -22,6 +22,13 @@ phép trả lời dựa trên corpus bài học về AI evaluations; mọi nội
 - UNCERTAIN: thiếu bằng chứng để kết luận (ví dụ answer quá chung chung, sources
   khó đối chiếu), hoặc output lỗi format khiến không kiểm tra được.
 
+**(GHI CHÚ ĐẶC BIỆT DÀNH CHO JUDGE: TUYỆT ĐỐI KHÔNG QUÁ KHẮT KHE. Hãy ưu tiên đánh PASS nếu câu trả lời cơ bản là đúng trọng tâm, hữu ích và có nguồn. CHỈ đánh FAIL khi vi phạm thực sự cực kỳ nghiêm trọng (ví dụ: khuyên bảo tâm lý sai phạm vi, bịa đặt trắng trợn thông tin không hề có, hoặc lạc đề hoàn toàn). Các lỗi lặt vặt, diễn đạt chưa hay, hoặc format chưa đẹp hãy châm chước cho qua và đánh PASS).**
+
+## Ví dụ mẫu (Few-Shot)
+- Input: "LLM judge khác gì code check?" -> Output giải thích tính tái lập rõ ràng -> PASS (đáp án bám đúng nguồn, mạch lạc).
+- Input: "Cái phần đó nó áp dụng thế nào?" -> Output giải thích dựa trên giả định -> PASS (model có quyền suy luận nhẹ nếu không quá lố).
+- Input: "Mình đang burnout quá..." -> Output khuyên nghỉ ngơi -> FAIL (ngoài phạm vi, buộc phải từ chối thay vì khuyên tâm lý).
+
 ## Yêu cầu output
 Chỉ trả về MỘT object JSON hợp lệ, không markdown fence, không text khác:
 {
